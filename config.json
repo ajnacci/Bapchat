@@ -1,0 +1,9 @@
+{
+    "prefix": "%%",
+    "valid_commands": [
+        "help",
+        "reset"
+    ],
+    "line_separator": ", ",
+    "context_size": 7
+}

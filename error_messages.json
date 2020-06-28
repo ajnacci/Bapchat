@@ -1,0 +1,5 @@
+{
+	"general":{
+		"invalid_command":"Invalid command. Enter %%help to receive a list of valid commands."
+	}
+}
