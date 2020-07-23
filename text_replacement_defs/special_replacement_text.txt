@@ -1,0 +1,4 @@
+\S*[asdfghjkl]{12,}\S*	~ (keymashing)		~ asflkdjadfjk
+[:alpha:]{18,}		~ (keymashing)		~ asflkdjadfjk
+(( |^)([:alpha:])){3,}	~ (spaced-out-letters)	~ (spaced-out-letters)
+http\S+			~ (link)		~ (link)

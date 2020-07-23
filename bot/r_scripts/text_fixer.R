@@ -5,24 +5,63 @@ needs(stringr)
 needs(hash)
 needs(sets)
 
+setwd(input[[3]])
+
+rel_specification_path <- '../../text_replacement_defs/'
+
 sep_token = "\n <|endoftext|>\n "
+line_separator <- ', '
+
+# surround with
+st_rep_start <- "(\\s|^|\\(|\")"
+st_rep_end <- "(\\s|$|,|\"|\\.|\\)|\\?|!)"
+wordify <- function(reges){ return(paste(st_rep_start, reges, st_rep_end, sep="")) }
+wordify2 <- function(reges){return(paste("\\1", reges, "\\2", sep=""))}
+wordify3 <- function(reges){ return(paste("(\\s|^|\\(|\"|\\@)", reges, "(\\s|$|,|\"|\\.|\\)|:|s|\\?|!)", sep="")) }
+
+generic_error_default <- function(fn, default_val, inputs){
+  outer = default_val
+  try(
+    (outer = fn(inputs)),
+    silent=TRUE
+  )
+  return(outer)
+}
+
+gen_generic_ed <- function(fn, default_val){
+  return(function(inputs) return(generic_error_default(fn, default_val, inputs)))
+}
+
+read_vec_pre <- function(file_name){
+  return(trimws(as.matrix(read.table(paste(rel_specification_path, file_name, '.txt', sep=''), sep=','))))
+}
+
+read_vec2_pre <- function(inputs){
+  file_name = inputs[1]
+  sept = inputs[2]
+  return(trimws(as.matrix(read.table(paste(rel_specification_path, file_name, '.txt', sep=''), sep=sept))))
+}
+
+read_vec <- gen_generic_ed(read_vec_pre, as.matrix(character()))
+read_vec2 <- gen_generic_ed(read_vec2_pre, as.matrix(character()))
+
+get_col <- gen_generic_ed(function(inputs) return(inputs[[1]][,inputs[[2]]]), character())
+get_col2 <- function(a, b){get_col(list(a,b))}
 
 # nameset: hash, name -> set of nicknames
 # generic_names: number -> list of generic names
 nameset <- hash()
 
-model_folder <- './model_folder'
-read_vec <- function(file_name){return(trimws(as.matrix(read.table(paste(model_folder, '/', file_name, '.txt', sep=''), sep=','))))}
 split_multicol <- function(multicol){return(lapply(strsplit(multicol, ','), trimws))}
 
-generic_names <- read_vec('generic_names')[, 1] 
+generic_names <- get_col(list(read_vec('generic_names'), 1))
 nickname_mappings <- read_vec('usernames')
 
-key_strings <- nickname_mappings[,1]
-nick_list <- nickname_mappings[,2]
-nicknames <- split_multicol(nickname_mappings[,3])
+key_strings <- get_col2(nickname_mappings,1)
+nick_list <- get_col2(nickname_mappings,2)
+nicknames <- split_multicol(get_col2(nickname_mappings,3))
 
-bap_names <- as.set(read_vec('bapchat_names')[,1])
+bap_names <- as.set(get_col2(read_vec('bapchat_names'),1))
 
 for(i in 1:length(key_strings)){
   nameset[[key_strings[[i]]]] <- as.set(nicknames[[i]])
@@ -30,17 +69,11 @@ for(i in 1:length(key_strings)){
 }
 
 
-remove_users <- c('FurBot', 'Dyno', '', 'Dante Beta', 'Frost', 'TeXit', 'Dooker', 'YAGPDBxyz', 'Majik')
-remove_content <- c('f', 'F', '', 'pinned a message.', '^', '^^')
-
-
-line_separator <- ', '
+remove_users <- read_vec("users_to_ignore")
+remove_content <- read_vec("messages_to_ignore")
 
 # use this for words with repeated characters that are likely to get held out (normal reduction loses the double letter)
-words_to_reduce <- c("well", "ree", "oof", "ooh", "cool", "awoo", 
-                     "hiss", "shh", "omg", "hello", "hi", "hey", 
-                     "skippy", "acci", "waffles", "skip", "wtf", 
-                     "she", "he", "his", "hers", "him", "her")
+words_to_reduce <- get_col2(read_vec('reduction_words'),1)
 
 reduced_form <- words_to_reduce
 
@@ -61,17 +94,9 @@ for(i in 1:length(words_to_reduce)){
   words_to_reduce[[i]] <- test_fnt(words_to_reduce[[i]])
 }
 
-
-# surround with
-st_rep_start <- "(\\s|^|\\(|\")"
-st_rep_end <- "(\\s|$|,|\"|\\.|\\)|\\?|!)"
-wordify <- function(reges){ return(paste(st_rep_start, reges, st_rep_end, sep="")) }
-wordify2 <- function(reges){return(paste("\\1", reges, "\\2", sep=""))}
-wordify3 <- function(reges){ return(paste("(\\s|^|\\(|\"|\\@)", reges, "(\\s|$|,|\"|\\.|\\)|:|s|\\?|!)", sep="")) }
-
-full_emoticons <- read_vec('emoticons')
-emoticon_index <- full_emoticons[,1]
-emoticons <- split_multicol(full_emoticons[,3])
+full_emoticons <- read_vec2(c('emoticons', '~'))
+emoticon_index <- get_col2(full_emoticons, 1)
+emoticons <- split_multicol(get_col2(full_emoticons,3))
 
 
 for(i in 1:length(emoticons)){
@@ -82,97 +107,53 @@ for(i in 1:length(emoticons)){
 emoticons <- wordify(emoticons)
 emoticon_index <- wordify2(emoticon_index)
 
+replacement_words <- read_vec("replacement_words")
+special_replacement_words <- read_vec("replacement_words")
 
 st_rep_sensor <- c(
   words_to_reduce,
-  "o",
-  "w+h*e{2,}",
-  "a{2,}h*",
-  "h+u*m+",
-  "d*a+w+h*",
-  "m+",
-  "a*(?:h+a+)+h*",
-  "[jy]+[ea]+h*",
-  "u+",
-  "v+i+n+x+",
-  "l+e+(?:s|s{3,})",
-  "s?he",
-  "h(?:is|er)",
-  "him",
-  "hers",
-  "himself",
-  "herself"
+  get_col2(replacement_words,1),
+  get_col2(special_replacement_words,1)
 )
 st_rep_sensor <- wordify(st_rep_sensor)
 
 # surround with \\1 \\2
 st_rep_with <- c(
   reduced_form,
-  "oh",
-  "wee",
-  "(ah)",
-  "hmm",
-  "aww",
-  "(em)",
-  "haha",
-  "yeah",
-  "you",
-  "mexi",
-  "les",
-  "they",
-  "their",
-  "them",
-  "theirs",
-  "themselves",
-  "themselves"
+  get_col2(replacement_words,2),
+  get_col2(special_replacement_words,2)
 )
 st_rep_with <- wordify2(st_rep_with)
 
 # if a message matches these, set it to empty
 regex_message_delete <- c("^,tex", "^d\\.", "^\\?[:alpha:]+")
 paste(regex_message_delete, ".*$")
-#"^\\(emoji\\)( \\(emoji\\))*$",
+
+replacement_text <- read_vec2(c("replacement_text", "~"))
+special_replacement_text <- read_vec2(c("special_replacement_text", "~"))
 
 rep_sensor <- c(
-  "^d\\..*", #boat command removal (just destroys whole message)
-  "http\\S+", #(link) detector
-  "^\\s*f\\.shind.*$",
-  "^f\\.(\\S+)",
   "\n+",
   "\\s+", #excess whitespace removal (should be performed directly before spaced letter detection and after newline replace)
-  "(( |^)([:alpha:])){3,}", #spaced-out-letters detector
-  "([[:alpha:]])\\1{2,}", #rep reducer. 3+ goes to 1 **********************************
-  "\\.{2,}", #convert any number of multiple dots to an elipses (3 dots)
-  "@{2,}",
-  "[:alpha:]{18,}", #label words (after rep-reduction) of length 20+ as keymashing. This number can probably be lower
-  "\\?{4,}", #remove long sequences of ? since these may come from iconv
-  "\\S*[asdfghjkl]{12,}\\S*",
+  replacement_text[,1],
+  special_replacement_text[,1],
   st_rep_sensor,
   regex_message_delete
 )
 
 rep_with <-  c( # subtract 39 to get other line number
-  "", 
-  "(link)", 
-  "",
-  "",
   line_separator,
   " ", 
-  " (spaced-out-letters) ", 
-  "\\1", 
-  "...",
-  "@",
-  " (keymashing) ", 
-  "", 
-  "(keysmashing)",
+  replacement_text[,2],
+  special_replacement_text[,2],
   st_rep_with,
   rep("", length(regex_message_delete))
 )
 
 
 temp <- data.table(
-  Author = input[[1]],
-  Content = input[[2]]
+  Author = as.character(input[[1]]),
+  Content = as.character(input[[2]])
 )
 
 temp[, short_author := iconv(Author, from = 'UTF-8', to = 'ASCII//TRANSLIT', sub="")]
@@ -192,17 +173,8 @@ for(i in 1:length(emoticons)){
   temp[, fixed_content := str_replace_all(fixed_content, emoticons[[i]], emoticon_index[[i]])]
 }
 
-#
-#temp[, Reactions := NULL]
 temp[, Content := NULL]
-#temp[, Date := NULL]
-
-#temp[, fixed_content := gsub("\n+", ", ", fixed_content)]
-
 temp[, fixed_content := gsub("[^0-9a-z:;\\(\\)\\?\\^\\./$@%\\[\\]\\<\\>, ]", "", fixed_content)]
-#temp[, fixed_content := gsub("['\"]", "", fixed_content)]
-#temp[, short_author := gsub("[^a-zA-Z]", "", iconv(short_author, from = 'UTF-8', to = 'ASCII//TRANSLIT', sub=""))]
-#temp[, fixed_content := gsub(":[^ ]*;", "(emoji)", fixed_content)]
 
 temp <- temp[!(short_author %in% remove_users)]
 
@@ -216,7 +188,6 @@ temp <- temp[!(fixed_content %in% remove_content)]
 temp[, fixed_content := gsub("[^0-9a-z\\(\\)\\?\\.\\$@%, ]", "", fixed_content)]
 temp[, short_author := gsub("[^0-9a-z\\(\\)\\?\\.\\$@%, ]", "", tolower(short_author))]
 temp <- temp[grepl("^[0-9a-z\\.\\$@%, ]+$", short_author)]
-#temp[, short_author := gsub("[^a-z]", "", tolower(short_author))]
 
 # Experimental: filter out all length 1 messages
 # temp <- temp[nchar(temp$fixed_content) > 1]
@@ -281,40 +252,20 @@ if(nrow(temp)>1){
   
 } else {
   temp[, Author := NULL]
-  #temp[, Content := NULL]
-  
 }
 
 
 temp[, fixed_content := trimws(fixed_content)]
-#print(paste(nrow(temp[nchar(fixed_content) < 2]), nrow(temp[nchar(fixed_content) < 3]), nrow(temp[nchar(fixed_content) < 4]), nrow(temp[nchar(fixed_content) < 5]), 'out of', nrow(temp), sep=', '))
-#temp[, untagged_fixed_content := fixed_content]
-# KEY LINE TODO SWITCH BETWEEN USAGES
 temp[, fixed_content := paste(short_author, ': "', fixed_content, '"', sep='')]
-#temp[, fixed_content := paste('__label__', short_author, ' ', fixed_content, sep='')]
 
-#for(j in 1:length(post_rep_sensor)){
-#  temp[, fixed_content := gsub(post_rep_sensor[[j]], post_rep_with[[j]], fixed_content)]
-#}
-
-#TODO count backwards some number of characters from the end of the message
-
-
-# UPDATED VERSION: acci 2 :3
 texts = temp$fixed_content
 
 bap_nameset <- as.set(
-  c(
-    'bapchat',
-    'bappy',
-    'dave',
-    'acci 2',
-    'Bapchat'
-  )
+  get_col2(
+    read_vec("bapchat_names"),
+    1
+    )
 )
-
-
-
 
 name_format <- function(ttso){
   name_mappings <- list()

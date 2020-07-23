@@ -1,2 +1,2 @@
-tokens.json
-model_folder/*
+bot/models/dave_mini2
+bot/models/example_model_folder/*

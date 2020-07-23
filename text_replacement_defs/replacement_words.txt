@@ -1,0 +1,15 @@
+o		~ oh
+a*(?:h+a+)+h*	~ haha
+[jy]+[ea]+h*	~ yeah
+w+h*e{2,}	~ wee
+h+u*m+		~ hmm
+d*a+w+h*	~ aww
+u+		~ you
+v+i+n+x+	~ mexi
+l+e+(?:s|s{3,})	~ les
+s?he		~ they
+h(?:is|er)	~ their
+him		~ them
+hers		~ theirs
+himself		~ themselves
+herself		~ themselves

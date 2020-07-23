@@ -78,8 +78,8 @@ generic_names = [
   'Megan'
 ]
 
-#patterns = [r"\(aa\)", r"\(mm\)", r"\(keysmashing\)"]
-#replacements = ["aaaaAAAa", "mmmmMMMm", "asldkfjsjlafj"]
+# words to not say
+bad_words = [str.strip(x) for x in open("./data_files/bad_words.txt", "r").split('\n')]
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO,
@@ -172,7 +172,8 @@ def main():
     logger.info(args)
 
     prompt_text = ""
-    while prompt_text != "***":
+    count = 1
+    while prompt_text != "***" and count < 50:
         prompt_text = args.prompt if args.prompt else (open(args.input_text, "r")).read() if args.input_text else input("Model prompt >>> ")
         encoded_prompt = tokenizer.encode(prompt_text, add_special_tokens=False, return_tensors="pt")
         encoded_prompt = encoded_prompt.to(args.device)
@@ -213,39 +214,32 @@ def main():
             
             # Remove all text after the stop token
             # 
-            text = text[(text.find("\"")+1): (text.rfind("\""))]# if args.stop_token else None]
+            text = text[(text.find("\"")+1): (text.find("\"")+1)+(text[(text.find("\"")+1):].find("\""))]# if args.stop_token else None]
 
             # If it contains too many generics, re-generate until it doesn't
             index = args.num_generics
             
-            #print(text)
+            found_extrageneric = 'Bapchat' in text or ('@' in text and not ' ' in text) or 'ama person of' in text or text.count('@') > 1
+            if not found_extrageneric:
+              for bad_word in bad_words:
+                if bad_word in text:
+                  found_extrageneric = True
+                  break
 
-            found_extrageneric = 'Bapchat' in text or ('@' in text and not ' ' in text)
             while index < len(generic_names) and not found_extrageneric:
                 found_extrageneric = generic_names[index] in text or text == "(link)" or text == "(emoji)" or text == "(attachment)"
                 index = index + 1
             
             if found_extrageneric:
-                #print(text)
-                #print('EXTRA!')
+                count = count + 1
                 break
 
-            # Add the prompt at the beginning of the sequence. Remove the excess text that was used for pre-processing
-            #total_sequence = (
-            #    prompt_text + text[len(tokenizer.decode(encoded_prompt[0], clean_up_tokenization_spaces=True)) :]
-            #)
-
-            #for index in 0:length(patterns):
-            #   text = re.sub(patterns[index], replacements[index], text)
-            
-
-            #generated_sequences.append(total_sequence)
-            #print(total_sequence)
             print(text)
 
         if not found_extrageneric and (args.input_text or args.prompt):
             return generated_sequences
 
+    print("This response was filtered too many times, giving up...")
     return generated_sequences
 
 

@@ -1,0 +1,8 @@
+{
+	"general":{
+		"invalid_command":"Invalid command. Enter %%help to receive a list of valid commands."
+	},
+	"ml":{
+		"response_generation_default":"*I look wistfully into the sunset, saying nothing because an error occurred*"
+	}
+}

@@ -1,0 +1,2 @@
+a{2,}h*		~ (ah)	~ aaaaaAaa
+m+		~ (em)	~ mmmmMMm
