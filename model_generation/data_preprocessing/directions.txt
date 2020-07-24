@@ -1,0 +1,69 @@
+1. Download DiscordChatExporter
+(https://github.com/Tyrrrz/DiscordChatExporter)
+
+2. Create a directory in datasets and give it a
+name without spaces. This will be the name of our
+data.
+
+3. Set up DCE and select all the channels you
+wish to use as training data for the chatbot.
+When you hit export, you'll want to set the
+output to be stored as .csv files, and I
+recommend setting the max messages per file to be
+5000. It will then have you select a directory to
+save these files to, and you should select the
+directory you created in step 2.
+
+Note: It will take some time for DCE to export
+all the messages, be patient.
+
+4. Go into the processed_data directory and
+create a new folder, probably with the same name
+as the one you created in datasets. This will be
+used to hold our data after we process it.
+
+5. Go into the r_scripts directory and open up
+all 3 of the files it contains in R Studio.
+
+6. Navigate to initial_setup and hit "Source".
+This will just install the necessary R packages.
+
+7. Navigate to users_detected and enter the
+appropriate folder name on line 3. Then, hit
+"Source". What you should get is a bunch of
+usernames. Decide now which users you want the
+chatbot to learn from. If you only select one
+user, the bot will essentially emulate them. I
+recommend selecting a few users who have sent
+many messages in your data set and who you think
+set a good example for the sort of chatbot you
+want.
+
+8. Navigate to the main folder and open the
+text_replacement_defs directory. Open
+bapchat_names.txt and enter each username 
+(exactly as it appeared in the previous step!)
+that you would like the bot to learn from, one
+per line. Leave one empty line at the end. Save
+the file and close it.
+
+Note: There are many other settings that you can
+mess with in the text_replacement_defs directory.
+You can find a description of all these settings
+in the README there, but generally speaking, the
+bapchat_names file is the only one that NEEDS to
+be changed before being used.
+
+9. Navigate to the preprocessing_script in R
+Studio. On line 11, enter the name of the folder
+that contains the csv files into the appropriate
+place. On line 12, enter the name of the folder
+in processed_data that will contain the output
+files. Then, hit "Source". This script will take
+a while to execute. On the part that takes the
+longest time, there will be a progress indicator
+printed out.
+
+Once you're done here, you want to go to
+/model_generation/model_training to complete the
+next step, training.

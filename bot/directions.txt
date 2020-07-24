@@ -1,0 +1,37 @@
+Once you have a model trained, it is time to
+actually run the bot. There are a few things you
+must do before the bot is ready to go.
+
+1. Follow these steps to install Node.js and
+set up the bot:
+
+https://www.howtogeek.com/364225/how-to-make-your-own-discord-bot/
+
+All we need is the bot's token, no coding
+required. Do not share your token! Treat it like
+a password!
+
+Navigate to /bot/data_files and open tokens.json.
+Replace the appropriate text with your token.
+
+2. Navigate to /bot and open config.json. Enter
+the name of your model (as indicated by its
+directory name in the models directory) in the
+appropriate place on line 3.
+
+3. Open up the command line and run the following
+one at a time:
+
+npm install discord.js
+npm install r-script
+npm install express
+
+4. Now you are ready to run your bot! This is the
+only step you have to do to start your bot up
+again in the future. Navigate to /bot on the
+command line and run:
+
+node index.js
+
+After a moment, your bot should pop online. Have
+fun!

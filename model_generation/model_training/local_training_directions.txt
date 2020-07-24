@@ -1,0 +1,32 @@
+(replace statements in <these> with the appropriate text)
+
+In this directory, run the following on the command line:
+
+pip install transformers
+cp ../processed_data/<data directory>/* .
+
+The next step will run the generation of the model and place
+it into the appropriate model folder in the bot directory.
+If you have a more powerful machine, then you can replace
+the model_name_or_path line with any of the following:
+gpt2-medium, gpt2-large, gpt2-xl
+
+
+!python ./run_language_modeling.py \
+    --save_total_limit=3 \
+    --output_dir=../../bot/models/<model name> \
+    --model_type=gpt2 \
+    --model_name_or_path=gpt2 \
+    --do_train \
+    --train_data_file=./train.txt \
+    --do_eval \
+    --eval_data_file=./val.txt \
+    --block_size=100 \
+    --overwrite_output_dir
+
+
+Once this is complete, set the model name in config.json
+in the bot directory and you're good to go. Note that this
+process may take many hours depending on how much data you
+have and whether or not you used a larger model (the
+default model is the small gpt2).

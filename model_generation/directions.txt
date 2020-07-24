@@ -1,0 +1,3 @@
+Complete the directions in the data_preprocessing
+directory first, then move on to the
+model_training directory.

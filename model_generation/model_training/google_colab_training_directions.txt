@@ -1,0 +1,32 @@
+You'll want to have a google account for this.
+Create 2 new folders in Google Drive. One will
+hold the input files for training and one will
+hold the output files once training is complete.
+
+Upload train.txt, val.txt, and
+run_language_modeling.py into the input folder.
+
+Then, open Google Colab and import
+train_model.ipynb so that you can see the
+notebook. Go to Runtime > change runtime type and
+select GPU (this improves performance during
+training). Then, run the first block, Google will
+need to do some verification to allow Colab
+access to your Drive. 
+
+Once you complete that step, enter the name of
+the input folder and the output folder you
+created in the appropriate spots (marked by text
+surrounded with <these>) in the second code
+block. Then, simply run the second code block
+and make sure your computer doesn't fall asleep
+until the block has completed its work (note that
+this may take up to 9 hours, so you should
+probably adjust your computer's sleep settings
+temporarily).
+
+After this is done, you'll want to download all
+the files in your output folder in Google Drive
+and place them into a model directory
+(bot/models/<new model name> should contain the
+files). You are then ready to run the bot.
