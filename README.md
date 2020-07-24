@@ -8,3 +8,5 @@ I am still working on documenting everything fully, but here is what you need to
 4. There are direction folders in all the important places that tell you what you need to do. Start with the one in /model_generation/data_preprocessing.
 
 Good luck!
+
+Note: I did not write the run_language_model.py and run_generation.py files. I only adjusted them a bit from the examples provided by the transformers (huggingface) library.
