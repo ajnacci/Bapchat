@@ -9,4 +9,4 @@ I am still working on documenting everything fully, but here is what you need to
 
 Good luck!
 
-Note: I did not write the run_language_model.py and run_generation.py files. I only adjusted them a bit from the examples provided by the transformers (huggingface) library.
+Note: I did not write the run_language_model.py and run_generation.py files. I only adjusted them a bit from the examples provided by the transformers (huggingface) library. All other code is my own, pending comments.
