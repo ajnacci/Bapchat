@@ -1,0 +1,2 @@
+Create a directory here that will contain your
+csv files from DiscordChatExporter.

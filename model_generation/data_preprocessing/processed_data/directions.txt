@@ -1,0 +1,3 @@
+Create a directory here for the output from the
+processing script. I recommend giving it the same
+name as its corresponding datasets directory.
