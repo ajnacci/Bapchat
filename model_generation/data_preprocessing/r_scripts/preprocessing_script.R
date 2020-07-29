@@ -6,10 +6,11 @@ library(hash)
 library(sets)
 
 
-rel_specification_path <- '..//..//..//text_replacement_defs//'
-
 path_to_folder = "..//datasets//<dataset to process>"
 path_to_output_folder = "..//processed_data//<folder to write processed data into>"
+
+rel_specification_path <- '..//..//..//text_replacement_defs//'
+
 
 max_tokens = 80
 sep_token = "\n <|endoftext|>\n "
@@ -70,6 +71,14 @@ for(i in 1:length(key_strings)){
   nameset[[key_strings[[i]]]] <- as.set(nicknames[[i]])
   nameset[[key_strings[[i]]]] <- set_union(set_union(as.set(key_strings[[i]]), nameset[[key_strings[[i]]]]), as.set(nick_list[[i]]))
 }
+
+get_nameset <- function(query){
+  if(query %in% keys(nameset)){
+    return(nameset[[query]])
+  }
+  return(as.set(query))
+}
+
 
 remove_users <- read_vec("users_to_ignore")
 remove_content <- read_vec("messages_to_ignore")
@@ -156,6 +165,7 @@ file_list <- list.files(path_to_folder)
 
 i = 1
 temp <- NULL
+print('READING CSV FILES (step 1 of 4)')
 for(file_name in file_list){
   print(paste('i', i, ' out of ', length(file_list)))
   file_name2 <- paste(path_to_folder, file_name, sep='//')
@@ -172,7 +182,7 @@ temp[, Date := NULL]
 temp[, Reactions := NULL]
 
 temp[, short_author := iconv(Author, from = 'UTF-8', to = 'ASCII//TRANSLIT', sub="")]
-#temp[, short_author := substring(short_author, 1, nchar(short_author)-5)]
+temp[, short_author := substring(short_author, 1, nchar(short_author)-4)]
 temp[, Content := iconv(Content, from = 'UTF-8', to = 'ASCII//TRANSLIT', sub="")]
 
 #Experimental: get these out of the way because they screw things up otherwise
@@ -194,8 +204,11 @@ temp[, fixed_content := gsub("[^0-9a-z:;\\(\\)\\?\\^\\./$@%\\[\\]\\<\\>, ]", "",
 
 temp <- temp[!(short_author %in% remove_users)]
 
+print('DOING REPLACEMENTS (step 2 of 4)')
 for(j in 1:length(rep_sensor)){
+  print(paste('doing replacement ', j, ' of ', length(rep_sensor), sep=''))
   temp[, fixed_content := str_replace_all(fixed_content, rep_sensor[[j]], rep_with[[j]])]
+  
 }
 
 temp[, fixed_content := trimws(fixed_content)]
@@ -214,7 +227,9 @@ shift <- function(input, n){
 }
 
 
+print('MERGING CONSECUTIVE MESSAGES (step 3 of 4)')
 if(nrow(temp)>1){
+  print('detecting max merge')
   k = 1
   uns = temp[['short_author']]
   shi = shift(uns,1)
@@ -246,6 +261,7 @@ if(nrow(temp)>1){
   
   setkey(acc, id)
   for(i2 in 1:k){
+    print(paste('merge ' , i2, ' out of ', k, sep=''))
     tempo <- temp[combi == i2]
     tempo <- tempo[, id := id-i2]
     setkey(tempo, id)
@@ -259,6 +275,7 @@ if(nrow(temp)>1){
     acc[, fixed_content.y := NULL]
     acc[, combi.y := NULL]
     acc[, short_author.y := NULL]
+    
   }
   
   temp <- acc
@@ -277,10 +294,14 @@ temp[, fixed_content := paste(short_author, ': "', fixed_content, '"', sep='')]
 texts = temp$fixed_content
 
 
-name_format <- function(ttso, bap_nameset){
+print('BREAKING INTO TRAINING BLOCKS (final step)')
+name_format <- function(ttso){
   name_mappings <- list()
   tts <- ttso
   tag_locations <- str_locate_all(pattern=":", tts)
+  ######
+  bap_nameset <- get_nameset(substring(tts[length(tts)], 1, tag_locations[[length(tts)]][1,'start']-1))
+  ######
   full_nameset <- bap_nameset
   for(b_name in bap_nameset){
     tts <- str_replace_all(tts, wordify3(b_name), wordify2("Bapchat"))
@@ -321,8 +342,8 @@ name_format <- function(ttso, bap_nameset){
       if(move_on){
         temp_name <- name
         
-        print(identifier)
-        print(temp_name)
+        #print(identifier)
+        #print(temp_name)
         name_mappings[[identifier]] <- temp_name
         temp_nameset <- nameset[[temp_name]]
         if(is.null(temp_nameset)){
@@ -351,7 +372,16 @@ for(i in 1:length(people_to_learn_from)){
 
 
 token_length <- function(ind, c_s){
-  return(length(strsplit(trimws(str_replace_all(paste(texts[max(1, index-context_size):index], collapse=' '), " +", " ")), " ")[[1]]))
+  return(
+    length(
+      strsplit(
+        trimws(
+          str_replace_all(
+            paste(
+              texts[max(1, ind-c_s):ind], collapse=' '
+              ), " +", " ")
+          ), " ")[[1]])
+    )
 }
 
 result_lines = list()
@@ -361,7 +391,7 @@ counter = 1
 counter2 = 1
 for(index in indices){
   context_size <- 0
-  while(token_length(index, context_size) < max_tokens){
+  while(token_length(index, context_size) < max_tokens & max(1,index-context_size) > 1){
     context_size <- context_size + 1
   }
   if(context_size > 0){
@@ -369,12 +399,12 @@ for(index in indices){
   }
   temp_texts <- texts[max(1, index-context_size):index]
   
-  
   temp_texts <- name_format(temp_texts)
   
   result_lines <- append(result_lines, c(paste(temp_texts, collapse='\n')))
   if(counter%%int_step==0){
     print(paste('approx. ', counter2, '% complete', sep=''))
+    counter2 = counter2 + 1
   }
   counter = counter+1
 }

@@ -25,6 +25,13 @@ used to hold our data after we process it.
 5. Go into the r_scripts directory and open up
 all 3 of the files it contains in R Studio.
 
+NOTE: If you're doing this in a linux command
+line sort of situation, you can just use any text
+editor to edit the files where needed, and you
+can run them by entering R (launching interactive
+R), and then using the command
+source('file_name_here')
+
 6. Navigate to initial_setup and hit "Source".
 This will just install the necessary R packages.
 
@@ -41,7 +48,7 @@ want.
 
 8. Navigate to the main folder and open the
 text_replacement_defs directory. Open
-bapchat_names.txt and enter each username 
+users_to_learn_from.txt and enter each username
 (exactly as it appeared in the previous step!)
 that you would like the bot to learn from, one
 per line. Leave one empty line at the end. Save
@@ -50,9 +57,10 @@ the file and close it.
 Note: There are many other settings that you can
 mess with in the text_replacement_defs directory.
 You can find a description of all these settings
-in the README there, but generally speaking, the
-bapchat_names file is the only one that NEEDS to
-be changed before being used.
+in the README there. I do recommend that you edit
+bapchat_names.txt at some point, but it doesn't
+play a role in preprocessing and training, so you
+can wait until your bot is up and running first.
 
 9. Navigate to the preprocessing_script in R
 Studio. On line 11, enter the name of the folder

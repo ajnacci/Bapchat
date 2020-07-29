@@ -1,1 +1,1 @@
-install.packages(c("data.table", "dplyr", "stringr", "hash", "sets"))
+install.packages(c("data.table", "dplyr", "stringr", "hash", "sets", "rlist"))
