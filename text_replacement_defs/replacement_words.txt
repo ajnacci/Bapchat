@@ -5,8 +5,6 @@ w+h*e{2,}	~ wee
 h+u*m+		~ hmm
 d*a+w+h*	~ aww
 u+		~ you
-v+i+n+x+	~ mexi
-l+e+(?:s|s{3,})	~ les
 s?he		~ they
 h(?:is|er)	~ their
 him		~ them
